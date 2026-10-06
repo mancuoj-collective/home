@@ -9,6 +9,9 @@ const out = join(root, "dist");
 const ORG = "mancuoj-collective";
 const TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "";
 
+// The repo that builds this page — never list the page itself.
+const EXCLUDE = new Set(["home"]);
+
 // GitHub linguist colors, trimmed to the languages this org actually uses.
 const LANG_COLORS = {
   TypeScript: "#3178c6",
@@ -62,6 +65,7 @@ async function getRepos() {
   const seen = new Set();
   return repos
     .filter((r) => !seen.has(r.id) && seen.add(r.id))
+    .filter((r) => !EXCLUDE.has(r.name))
     .map((r) => ({
       name: r.name,
       url: r.html_url,
