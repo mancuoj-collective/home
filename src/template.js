@@ -38,7 +38,7 @@ export function renderIndex({ org, motto, repos, css }) {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="${esc(org)} — an index of public repositories." />
-    <meta name="theme-color" content="#f5f4ef" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0f0f0e" media="(prefers-color-scheme: dark)" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="preload" href="syne.woff2" as="font" type="font/woff2" crossorigin />

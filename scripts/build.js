@@ -12,6 +12,9 @@ const TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "";
 // The repo that builds this page — never list the page itself.
 const EXCLUDE = new Set(["home"]);
 
+// Shorter labels keep the language column tight.
+const LANG_LABELS = { JavaScript: "JS", TypeScript: "TS" };
+
 // GitHub linguist colors, trimmed to the languages this org actually uses.
 const LANG_COLORS = {
   TypeScript: "#3178c6",
@@ -71,7 +74,7 @@ async function getRepos() {
       url: r.html_url,
       desc: r.description || "",
       stars: r.stargazers_count ?? 0,
-      lang: r.language || "",
+      lang: LANG_LABELS[r.language] || r.language || "",
       langColor: LANG_COLORS[r.language] || null,
       pushed: Date.parse(r.pushed_at) || 0,
     }))
