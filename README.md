@@ -4,9 +4,11 @@ A single static page that indexes the public repositories of
 [`mancuoj-collective`](https://github.com/mancuoj-collective) — name, description,
 language and star count — in a fine-line Swiss lattice.
 
-Stars are captured **at build time** by fetching the GitHub API, and the site is
-**rebuilt on a schedule** (every 6 hours) by GitHub Actions, so the numbers stay
-current without any client-side requests or tokens.
+The page is built from data fetched from the GitHub API **at build time**, so the
+deployed output is fully static (no client-side requests, no tokens).
+
+- Live: <https://collective.mancuoj.me>
+- Netlify project: `mancuoj-collective`
 
 ## Local
 
@@ -23,17 +25,26 @@ GITHUB_TOKEN=$(gh auth token) bun run build
 
 ## Deploy
 
-Pushing to `main` builds and publishes `dist/` to GitHub Pages via
-`.github/workflows/deploy.yml`. To enable it once:
+Deployment is handled by **Netlify's Git integration** — no CI. Pushing to `main`
+triggers a build on Netlify (using `netlify.toml`: `node scripts/build.js` →
+`dist/`), and the result is published to the custom domain.
 
-1. Push this repo to `github.com/mancuoj-collective/home`.
-2. **Settings → Pages → Source: GitHub Actions**.
+The repository link is a one-time setup:
 
-It will be served at `https://mancuoj-collective.github.io/home/`. To serve at the
-org root instead, name the repository `mancuoj-collective.github.io`.
+1. Netlify → project `mancuoj-collective` → **Project configuration → Build & deploy →
+   Continuous deployment → Link repository**.
+2. Pick `mancuoj-collective/home`, production branch `main`.
 
-The `schedule` trigger re-runs the build every 6 hours; `workflow_dispatch` lets
-you refresh on demand.
+After that, every push auto-deploys. `collective.mancuoj.me` is attached to the
+project and covered by the existing `*.mancuoj.me` certificate.
+
+### Refreshing star counts
+
+Because the build only runs on push, stars refresh on each push. If you want a
+guaranteed periodic refresh with no push, add a **build hook**
+(Project configuration → Build & deploy → Build hooks) and POST to it from any
+cron — for example a tiny GitHub Actions `schedule` workflow that only runs
+`curl -X POST <hook>`. (Netlify's own Scheduled Functions require a Pro plan.)
 
 ## Layout
 
@@ -42,7 +53,8 @@ src/styles.css      the whole design (light + dark, self-hosted Syne)
 src/template.js     HTML renderer, no dependencies
 scripts/build.js    fetch org repos + org meta → dist/index.html
 scripts/serve.js    tiny local static server
-public/             font + license + favicon, copied into dist/
+public/             font, license, favicon, Netlify _headers
+netlify.toml        build command + publish dir + Node version
 ```
 
 Fonts: [Syne](https://fonts.google.com/specimen/Syne), SIL OFL 1.1
