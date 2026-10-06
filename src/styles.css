@@ -18,7 +18,7 @@
   --accent: #e0361c;
 
   --pad: clamp(1.1rem, 4.5vw, 3.5rem);
-  --maxw: 82rem;
+  --maxw: 68rem;
   --row-x: clamp(0.7rem, 1.6vw, 1.4rem);
 }
 
@@ -89,7 +89,7 @@ body {
 
 .wordmark {
   min-width: 0;
-  font-size: clamp(2.3rem, 10.5vw, 8.75rem);
+  font-size: clamp(2.3rem, 10vw, 8rem);
   font-weight: 800;
   line-height: 0.82;
   letter-spacing: -0.03em;
