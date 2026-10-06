@@ -160,7 +160,7 @@ body {
 
 .repos {
   display: grid;
-  grid-template-columns: 3.2rem minmax(0, 1fr) minmax(0, 1.7fr) max-content 3.2rem;
+  grid-template-columns: 3.2rem minmax(0, 1fr) minmax(0, 1.7fr) max-content max-content;
   list-style: none;
   margin: clamp(2.4rem, 6vw, 4.5rem) 0 0;
   padding: 0;
@@ -200,7 +200,7 @@ body {
 }
 
 .row > :last-child {
-  padding-inline-end: 0;
+  padding-inline-end: var(--row-x);
 }
 
 .t {
@@ -350,6 +350,10 @@ body {
 
   .row > :first-child {
     padding-inline-start: 0.15rem;
+  }
+
+  .row > :last-child {
+    padding-inline-end: 0;
   }
 
   .idx {
