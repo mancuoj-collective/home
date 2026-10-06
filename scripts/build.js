@@ -61,7 +61,7 @@ async function getRepos() {
     url = next[1];
   }
 
-  // De-dupe defensively, then rank by stars, then recency.
+  // De-dupe defensively, then rank by stars, then most recently updated.
   const seen = new Set();
   return repos
     .filter((r) => !seen.has(r.id) && seen.add(r.id))
@@ -73,9 +73,9 @@ async function getRepos() {
       stars: r.stargazers_count ?? 0,
       lang: r.language || "",
       langColor: LANG_COLORS[r.language] || null,
-      pushed: Date.parse(r.pushed_at) || 0,
+      updated: Date.parse(r.updated_at) || 0,
     }))
-    .sort((a, b) => b.stars - a.stars || b.pushed - a.pushed);
+    .sort((a, b) => b.stars - a.stars || b.updated - a.updated);
 }
 
 async function build() {
