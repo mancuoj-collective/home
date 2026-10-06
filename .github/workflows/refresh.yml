@@ -1,0 +1,13 @@
+name: Refresh
+
+on:
+  schedule:
+    # Trigger a Netlify build every 6 hours to refresh star counts.
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -fsS -X POST -d '{}' "${{ secrets.NETLIFY_BUILD_HOOK }}"

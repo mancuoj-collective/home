@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Home page for mancuoj-collective — an index of public repositories.",
   "scripts": {
     "build": "bun run scripts/build.js",
     "preview": "bun run scripts/build.js && bun run scripts/serve.js"
