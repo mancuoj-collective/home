@@ -45,10 +45,12 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  overflow-x: clip;
 }
 
 body {
   min-height: 100%;
+  overflow-x: clip;
   padding: var(--pad);
   background: var(--bg);
   color: var(--fg);
@@ -86,6 +88,7 @@ body {
 }
 
 .wordmark {
+  min-width: 0;
   font-size: clamp(2.3rem, 10.5vw, 8.75rem);
   font-weight: 800;
   line-height: 0.82;
@@ -169,7 +172,7 @@ body {
 .row {
   position: relative;
   display: grid;
-  grid-template-columns: 3.2rem minmax(0, 1.05fr) minmax(0, 1.75fr) auto 3.2rem;
+  grid-template-columns: 3.2rem minmax(0, 1fr) minmax(0, 1.7fr) minmax(0, 0.95fr) 3.2rem;
   align-items: stretch;
   padding: clamp(0.6rem, 1.5vw, 0.95rem) 0;
   color: inherit;
@@ -300,13 +303,18 @@ body {
 /* ---------- narrow ---------- */
 
 @media (max-width: 720px) {
+  .brand {
+    gap: 1rem;
+  }
+
   .wordmark {
-    font-size: clamp(2.1rem, 12.5vw, 4rem);
+    font-size: clamp(1.7rem, 10.5vw, 3.6rem);
   }
 
   .chip {
-    width: clamp(1rem, 4vw, 1.5rem);
-    margin-bottom: 0.25rem;
+    width: clamp(0.9rem, 3.2vw, 1.25rem);
+    margin-top: 0.3rem;
+    margin-bottom: 0;
   }
 
   .subhead {
@@ -353,6 +361,7 @@ body {
 
   .desc .t {
     white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   .lang {
