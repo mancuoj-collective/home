@@ -1,13 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="29 -622.5 1750 1750" role="img" aria-label="mancuoj collective">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="mancuoj collective">
   <title>mancuoj collective</title>
   <style>
-    .m { fill: #12110d; }
-    @media (prefers-color-scheme: dark) {
-      .m { fill: #ffffff; }
-    }
+    .a { fill: #12110d; }
+    .b { fill: #e0361c; }
+    @media (prefers-color-scheme: dark) { .a { fill: #f1eee7; } }
   </style>
-  <g transform="translate(0 505) scale(1 -1)">
-    <path class="m" d="M45 490H285V0H45ZM645 505Q704 505 759 492.5Q814 480 857.5 450Q901 420 927 368Q953 316 953 237V0H713V207Q713 282 674 313.5Q635 345 533 345Q479 345 428.5 333Q378 321 338 304.5Q298 288 275 272L273 310Q277 328 300.5 360.5Q324 393 369 426Q414 459 482.5 482Q551 505 645 505ZM1301 505Q1360 505 1415 492.5Q1470 480 1513.5 450Q1557 420 1583 368Q1609 316 1609 237V0H1369V207Q1369 282 1330 313.5Q1291 345 1189 345Q1135 345 1084.5 333Q1034 321 994 304.5Q954 288 931 272L929 320Q933 335 959 365Q985 395 1032.5 427Q1080 459 1147.5 482Q1215 505 1301 505Z"/>
-  </g>
-  <circle cx="1701" cy="443" r="62" fill="#e0361c"/>
+  <rect class="a" x="3" y="11" width="7" height="18"/>
+  <rect class="b" x="12.5" y="3" width="7" height="26"/>
+  <rect class="a" x="22" y="16" width="7" height="13"/>
 </svg>
