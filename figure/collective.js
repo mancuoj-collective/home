@@ -108,9 +108,11 @@ export function buildCollective(repos) {
   // the entrance sits on the front face, over the glass
   body += `<g transform="${FRONT(x, y + D, BASE + 20)}"><rect class="door" x="${W / 2 - 9}" y="0" width="18" height="20" rx="1"/></g>`;
 
-  // ---- floors: one .bld per repository, painted bottom → top ----
-  for (let i = 0; i < n; i++) {
-    const z = lobbyTop + i * FH;
+  // ---- floors: painted bottom → top, so the FIRST repository ends up on the
+  // top floor (list order reads top → bottom, same as the tower) ----
+  for (let k = 0; k < n; k++) {
+    const i = n - 1 - k;
+    const z = lobbyTop + k * FH;
     const face = (t, w) =>
       `<g class="face-group" transform="${t}">` +
         `<rect class="halo" x="-3" y="-3" width="${w + 6}" height="${FH + 6}" rx="3"/>` +
