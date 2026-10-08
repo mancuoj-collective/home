@@ -9,11 +9,6 @@
 
   --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
-
-  /* the static line figure's strokes */
-  --fig-edge: #b0b0ab;
-  --fig-mid: #d2d2ce;
-  --fig-lo: #e6e6e3;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,10 +18,6 @@
     --dim: #6f6a67;
     --line: #232120;
     --accent: #ff5a3c;
-
-    --fig-edge: #8f8f8a;
-    --fig-mid: #55554f;
-    --fig-lo: #2e2e2b;
   }
 }
 
@@ -70,45 +61,6 @@ body {
 .sheet {
   max-width: 760px;
   margin-inline: auto;
-}
-
-/* ---------- the one visual moment ---------- */
-
-.figure {
-  display: flex;
-  justify-content: center;
-  margin-bottom: clamp(1.6rem, 4.5vw, 2.8rem);
-}
-
-.fig {
-  width: clamp(140px, 34vw, 190px);
-  height: auto;
-  display: block;
-}
-
-.fig path {
-  fill: var(--bg);
-  stroke: var(--fig-mid);
-  stroke-width: 1;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-  vector-effect: non-scaling-stroke;
-}
-
-.fig .nf {
-  fill: none;
-}
-
-.fig .sil {
-  stroke: var(--fig-edge);
-}
-
-.fig .hi {
-  stroke: var(--fg);
-}
-
-.fig .lo {
-  stroke: var(--fig-lo);
 }
 
 /* ---------- header ---------- */
