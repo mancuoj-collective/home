@@ -9,13 +9,18 @@ function esc(value) {
     .replace(/"/g, "&quot;");
 }
 
+// large counts get a compact form (1.2k), small ones stay exact
+const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
+const fmt = (n) => (n < 1000 ? String(n) : compact.format(n));
+
 function row(repo) {
   const lang = repo.lang ? `<i class="dot" style="--c:${repo.langColor || "currentColor"}"></i>` : "";
+  const desc = repo.desc ? `<span class="ds" title="${esc(repo.desc)}">${esc(repo.desc)}</span>` : `<span class="ds"></span>`;
   return `        <li>
           <a class="row" href="${esc(repo.url)}" target="_blank" rel="noopener noreferrer">
-            <span class="nm">${esc(repo.name)}</span>
-            <span class="ds">${esc(repo.desc)}</span>
-            <span class="meta">${lang}<span class="st">${repo.stars}</span></span>
+            <span class="nm" title="${esc(repo.name)}">${esc(repo.name)}</span>
+            ${desc}
+            <span class="meta">${lang}<span class="st">${fmt(repo.stars)}</span></span>
           </a>
         </li>`;
 }
@@ -28,7 +33,7 @@ export function renderIndex({ org, repos, css }) {
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content="${esc(org)} — public repositories." />
     <meta name="theme-color" content="#fbfbfa" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0e0e0d" media="(prefers-color-scheme: dark)" />
@@ -52,13 +57,17 @@ ${css}
         <span class="count">${String(repos.length).padStart(2, "0")} repos</span>
       </header>
 
-      <ol class="list" aria-label="Public repositories">
+${
+    repos.length
+      ? `      <ol class="list" aria-label="Public repositories">
 ${items}
-      </ol>
+      </ol>`
+      : `      <p class="empty">No public repositories yet.</p>`
+  }
 
       <footer class="foot">
-        <span>github.com/mancuoj-collective</span>
-        <span class="stars">★ ${total}</span>
+        <a href="https://github.com/mancuoj-collective" target="_blank" rel="noopener noreferrer">github.com/mancuoj-collective</a>
+        <span class="stars">★ ${fmt(total)}</span>
       </footer>
     </main>
 

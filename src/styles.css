@@ -3,8 +3,8 @@
 
   --bg: #fbfbfa;
   --fg: #1a1a18;
-  --dim: #8f8f8a;
-  --line: #e6e6e3;
+  --dim: #8f8a86;
+  --line: #e7e3df;
   --accent: #e0361c;
 
   --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
@@ -23,8 +23,8 @@
   :root {
     --bg: #0e0e0d;
     --fg: #eceae5;
-    --dim: #6f6f6b;
-    --line: #232322;
+    --dim: #6f6a67;
+    --line: #232120;
     --accent: #ff5a3c;
 
     --hairline-plate: #0e0e0d;
@@ -47,13 +47,18 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
   overflow-x: clip;
 }
 
 body {
   min-height: 100%;
   overflow-x: clip;
-  padding: clamp(24px, 6vw, 88px) clamp(20px, 6vw, 64px);
+  padding:
+    max(clamp(24px, 6vw, 88px), env(safe-area-inset-top))
+    max(clamp(20px, 6vw, 64px), env(safe-area-inset-right))
+    max(clamp(24px, 6vw, 88px), env(safe-area-inset-bottom))
+    max(clamp(20px, 6vw, 64px), env(safe-area-inset-left));
   background: var(--bg);
   color: var(--fg);
   font-family: var(--sans);
@@ -108,10 +113,12 @@ body {
 .head .name {
   font-size: 0.82rem;
   letter-spacing: 0.01em;
+  color: var(--dim);
 }
 
 .head .name b {
   font-weight: 600;
+  color: var(--fg);
 }
 
 .head .count {
@@ -138,18 +145,28 @@ body {
   border-bottom: 1px solid var(--line);
   text-decoration: none;
   color: inherit;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.row:active {
+  background: var(--line);
 }
 
 .nm {
+  min-width: 0;
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: -0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color 0.12s ease;
 }
 
 .ds {
+  min-width: 0;
   font-size: 0.82rem;
   color: var(--dim);
   overflow: hidden;
@@ -180,9 +197,14 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-.row:hover .nm,
 .row:focus-visible .nm {
   color: var(--accent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .row:hover .nm {
+    color: var(--accent);
+  }
 }
 
 .row:focus-visible {
@@ -206,6 +228,27 @@ body {
   color: var(--accent);
 }
 
+.foot a {
+  color: inherit;
+  text-decoration: none;
+  touch-action: manipulation;
+}
+
+.foot a:hover {
+  color: var(--accent);
+}
+
+.foot a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.empty {
+  padding: 1.4rem 0;
+  font-size: 0.85rem;
+  color: var(--dim);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .row .nm {
     transition: none;
@@ -221,5 +264,6 @@ body {
     grid-column: 1 / -1;
     margin-top: 0.2rem;
     white-space: normal;
+    overflow-wrap: anywhere;
   }
 }
