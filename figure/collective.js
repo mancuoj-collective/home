@@ -1,5 +1,6 @@
-// The figure: "the collective" drawn as a small skyline — one building per
-// repository, each with a window grid that lights up on hover.
+// The figure: "the collective" drawn as a small block of buildings — one per
+// repository, each with a window grid that lights up on hover. A few repos sit
+// in a single row; more wrap into a grid so the drawing stays roughly square.
 //
 // Pure string builder — no DOM — so scripts/build.js can render it at build
 // time and ship it as static markup. Hover states are wired in CSS with
@@ -47,11 +48,13 @@ function frame(points, margin = 0.075) {
 
 // ---- geometry (arbitrary units; the frame normalises them) ----
 const W = 48; // building width  (x)
-const D = 60; // building depth  (y)
+const D = 46; // building depth  (y)
 const GAP = 16;
+const GAPY = 30; // wider streets between rows keep the back facades readable
 const PAD = 28;
 const BASE = 10;
 const PITCH = 15; // window pane pitch
+const MAX_ROW = 5; // up to this many in one row, then wrap into a grid
 
 // a grid of panes drawn in a face-local group (0,0 = face top-left)
 function panes(w, h, inset = 5) {
@@ -71,12 +74,13 @@ function panes(w, h, inset = 5) {
 
 export function buildCollective(repos) {
   const n = Math.max(1, repos.length);
-  // taller = more stars, plus a stable stagger so the skyline reads as a row
+  const cols = n <= MAX_ROW ? n : Math.ceil(Math.sqrt(n));
+  const rows = Math.ceil(n / cols);
+  const stagger = rows > 1 ? (W + GAP) / 2 : 0; // offset alternate rows
   const heights = repos.map((r, i) => 78 + Math.min(r.stars || 0, 9) * 14 + (i % 3) * 18);
   const maxH = Math.max(...heights);
-  const rowW = n * W + (n - 1) * GAP;
-  const BW = rowW + PAD * 2;
-  const BD = D + PAD * 2;
+  const BW = cols * W + (cols - 1) * GAP + PAD * 2 + stagger;
+  const BD = rows * D + (rows - 1) * GAPY + PAD * 2;
   const mastZ = BASE + maxH + 26;
 
   const K = frame([
@@ -85,22 +89,37 @@ export function buildCollective(repos) {
   ]);
   const { P, TOP, FRONT, SIDE, box } = K;
 
+  const at = (i) => {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    return {
+      col,
+      row,
+      x: PAD + col * (W + GAP) + (row % 2 ? stagger : 0),
+      y: PAD + row * (D + GAPY),
+    };
+  };
+
   // ---- ground plate ----
   let body = box(0, 0, 0, BW, BD, BASE, "face");
   body += `<g transform="${TOP(0, 0, BASE)}">` +
     `<rect class="detail" x="9" y="9" width="${BW - 18}" height="${BD - 18}" rx="4"/>` +
-    `<line class="detail" x1="12" y1="${BD - 12}" x2="${BW - 12}" y2="${BD - 12}"/>` +
     [[14, 14], [BW - 14, 14], [14, BD - 14], [BW - 14, BD - 14]].map(([sx, sy]) => `<circle class="detail" cx="${sx}" cy="${sy}" r="3.2"/>`).join("") +
   `</g>`;
 
-  // ---- buildings, drawn left → right (far → near) ----
-  let mastDone = false;
-  for (let i = 0; i < n; i++) {
-    const x = PAD + i * (W + GAP);
-    const y = PAD;
+  // ---- buildings, painted back → front (smaller x+y first) ----
+  const front = [...Array(n).keys()].sort((a, b) => {
+    const A = at(a), B = at(b);
+    return A.col + A.row - (B.col + B.row) || A.col - B.col;
+  });
+  // put the rooftop beacon on the frontmost tallest building, so it stays visible
+  let beacon = -1;
+  for (const i of front) if (heights[i] === maxH) beacon = i;
+
+  for (const i of front) {
+    const { x, y } = at(i);
     const h = heights[i];
     const zTop = BASE + h;
-    const tallest = h === maxH && !mastDone;
 
     let b = box(x, y, BASE, W, D, h, "face");
     b += box(x + 3, y + 3, zTop, W - 6, D - 6, 5, "face"); // roof cap
@@ -116,8 +135,7 @@ export function buildCollective(repos) {
     // a doorway at the base of the front face
     b += `<g transform="${FRONT(x, y + D, BASE + 22)}"><rect class="door" x="${W / 2 - 7}" y="0" width="14" height="22" rx="1"/></g>`;
 
-    if (tallest) {
-      mastDone = true;
+    if (i === beacon) {
       b += box(x + W / 2 - 2, y + D / 2 - 2, zTop + 5, 4, 4, 16, "face");
       const bp = P(x + W / 2, y + D / 2, zTop + 22);
       b += `<circle class="beacon-halo" cx="${bp[0].toFixed(1)}" cy="${bp[1].toFixed(1)}" r="7" filter="url(#bloom)"/>` +
