@@ -47,13 +47,13 @@ function frame(points, margin = 0.075) {
 }
 
 // ---- geometry (arbitrary units; the frame normalises them) ----
-const W = 104; // tower width  (x)
-const D = 84; //  tower depth  (y)
-const PAD = 34;
+const W = 70; //  tower width  (x)
+const D = 56; //  tower depth  (y)
+const PAD = 24;
 const BASE = 10; //  plate thickness
-const LOBBY = 28; // lobby height
+const LOBBY = 30; // lobby height
 const ROOF = 9;
-const PITCH = 15; // window pane pitch
+const PITCH = 14; // window pane pitch
 
 // a grid of panes drawn in a face-local group (0,0 = face top-left)
 function panes(w, h, inset = 5) {
@@ -74,7 +74,7 @@ function panes(w, h, inset = 5) {
 export function buildCollective(repos) {
   const n = Math.max(1, repos.length);
   // more floors ⇒ shorter floors, so a tall tower never runs away
-  const FH = Math.max(26, Math.min(44, Math.round(150 / n)));
+  const FH = Math.max(30, Math.min(50, Math.round(170 / n)));
   const BW = W + PAD * 2;
   const BD = D + PAD * 2;
   const lobbyTop = BASE + LOBBY;
