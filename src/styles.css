@@ -70,19 +70,19 @@ body {
   justify-content: space-between;
   align-items: baseline;
   gap: 1rem;
-  padding-bottom: 0.85rem;
-  border-bottom: 1px solid var(--fg);
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--line);
 }
 
 .head .name {
-  font-size: 0.82rem;
-  letter-spacing: 0.01em;
-  color: var(--dim);
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--fg);
 }
 
 .head .name b {
   font-weight: 600;
-  color: var(--fg);
 }
 
 .head .count {
