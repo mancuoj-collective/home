@@ -1,7 +1,7 @@
+/syne.woff2
+  Cache-Control: public, max-age=31536000, immutable
+
 /*
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
-
-/figure.js
-  Cache-Control: public, max-age=3600
