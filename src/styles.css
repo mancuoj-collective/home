@@ -142,9 +142,10 @@ body {
   letter-spacing: 0.06em;
 }
 
-.top-right {
+.plate-head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: clamp(0.8rem, 2.5vw, 1.4rem);
 }
 
@@ -301,6 +302,8 @@ body {
   position: sticky;
   top: var(--pad);
   margin: 0;
+  display: grid;
+  gap: clamp(0.7rem, 2vw, 1.1rem);
   padding: clamp(1rem, 3vw, 1.7rem);
   background: var(--panel);
   border: 1px solid var(--edge);

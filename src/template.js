@@ -79,10 +79,6 @@ ${hoverCss(repos)}
         <h1 class="brand">
           <a href="https://github.com/mancuoj-collective" target="_blank" rel="noopener noreferrer">mancuoj collective<span class="dot">.</span></a>
         </h1>
-        <div class="top-right">
-          <span class="count"><b>${String(repos.length).padStart(2, "0")}</b> repos</span>
-          <input class="theme-in" type="checkbox" id="theme" aria-label="Dark theme" title="Dark / light" />
-        </div>
       </header>
 
       <div class="layout">
@@ -95,7 +91,11 @@ ${items}
   }
 
         <figure class="plate">
-          <div class="fig" role="img" aria-label="${esc(org)} drawn as a skyline of ${repos.length} buildings.">
+          <div class="plate-head">
+            <span class="count"><b>${String(repos.length).padStart(2, "0")}</b> repos</span>
+            <input class="theme-in" type="checkbox" id="theme" aria-label="Dark theme" title="Dark / light" />
+          </div>
+          <div class="fig" role="img" aria-label="${esc(org)} drawn as a tower with ${repos.length} floors.">
             <svg viewBox="${figure.viewBox}" aria-hidden="true" preserveAspectRatio="xMidYMid meet">${figure.body}</svg>
           </div>
         </figure>
