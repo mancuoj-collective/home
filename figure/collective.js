@@ -1,6 +1,6 @@
-// The figure: "the collective" drawn as a small block of buildings — one per
-// repository, each with a window grid that lights up on hover. A few repos sit
-// in a single row; more wrap into a grid so the drawing stays roughly square.
+// The figure: "the collective" drawn as a single tower — one floor per
+// repository, each floor's window band lighting up on hover. A tower keeps the
+// drawing clean at any repository count, however many floors there are.
 //
 // Pure string builder — no DOM — so scripts/build.js can render it at build
 // time and ship it as static markup. Hover states are wired in CSS with
@@ -47,21 +47,20 @@ function frame(points, margin = 0.075) {
 }
 
 // ---- geometry (arbitrary units; the frame normalises them) ----
-const W = 48; // building width  (x)
-const D = 46; // building depth  (y)
-const GAP = 16;
-const GAPY = 30; // wider streets between rows keep the back facades readable
-const PAD = 28;
-const BASE = 10;
+const W = 104; // tower width  (x)
+const D = 84; //  tower depth  (y)
+const PAD = 34;
+const BASE = 10; //  plate thickness
+const LOBBY = 28; // lobby height
+const ROOF = 9;
 const PITCH = 15; // window pane pitch
-const MAX_ROW = 5; // up to this many in one row, then wrap into a grid
 
 // a grid of panes drawn in a face-local group (0,0 = face top-left)
 function panes(w, h, inset = 5) {
   const iw = Math.max(6, w - inset * 2);
   const ih = Math.max(6, h - inset * 2);
   const cols = Math.max(2, Math.round(iw / PITCH));
-  const rows = Math.max(2, Math.round(ih / PITCH));
+  const rows = Math.max(1, Math.round(ih / PITCH));
   const pw = iw / cols;
   const ph = ih / rows;
   const g = 2;
@@ -74,31 +73,21 @@ function panes(w, h, inset = 5) {
 
 export function buildCollective(repos) {
   const n = Math.max(1, repos.length);
-  const cols = n <= MAX_ROW ? n : Math.ceil(Math.sqrt(n));
-  const rows = Math.ceil(n / cols);
-  const stagger = rows > 1 ? (W + GAP) / 2 : 0; // offset alternate rows
-  const heights = repos.map((r, i) => 78 + Math.min(r.stars || 0, 9) * 14 + (i % 3) * 18);
-  const maxH = Math.max(...heights);
-  const BW = cols * W + (cols - 1) * GAP + PAD * 2 + stagger;
-  const BD = rows * D + (rows - 1) * GAPY + PAD * 2;
-  const mastZ = BASE + maxH + 26;
+  // more floors ⇒ shorter floors, so a tall tower never runs away
+  const FH = Math.max(26, Math.min(44, Math.round(150 / n)));
+  const BW = W + PAD * 2;
+  const BD = D + PAD * 2;
+  const lobbyTop = BASE + LOBBY;
+  const shaftTop = lobbyTop + n * FH;
+  const mastZ = shaftTop + ROOF + 22;
 
   const K = frame([
     [0, 0, 0], [BW, 0, 0], [0, BD, 0], [BW, BD, 0],
     [0, 0, mastZ], [BW, 0, mastZ], [0, BD, mastZ], [BW, BD, mastZ],
   ]);
   const { P, TOP, FRONT, SIDE, box } = K;
-
-  const at = (i) => {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    return {
-      col,
-      row,
-      x: PAD + col * (W + GAP) + (row % 2 ? stagger : 0),
-      y: PAD + row * (D + GAPY),
-    };
-  };
+  const x = PAD;
+  const y = PAD;
 
   // ---- ground plate ----
   let body = box(0, 0, 0, BW, BD, BASE, "face");
@@ -107,43 +96,40 @@ export function buildCollective(repos) {
     [[14, 14], [BW - 14, 14], [14, BD - 14], [BW - 14, BD - 14]].map(([sx, sy]) => `<circle class="detail" cx="${sx}" cy="${sy}" r="3.2"/>`).join("") +
   `</g>`;
 
-  // ---- buildings, painted back → front (smaller x+y first) ----
-  const front = [...Array(n).keys()].sort((a, b) => {
-    const A = at(a), B = at(b);
-    return A.col + A.row - (B.col + B.row) || A.col - B.col;
-  });
-  // put the rooftop beacon on the frontmost tallest building, so it stays visible
-  let beacon = -1;
-  for (const i of front) if (heights[i] === maxH) beacon = i;
+  // ---- lobby ----
+  body += box(x, y, BASE, W, D, LOBBY, "face");
+  body += `<g transform="${TOP(x, y, lobbyTop)}"><rect class="detail" x="8" y="8" width="${W - 16}" height="${D - 16}" rx="3"/></g>`;
+  body += `<g transform="${FRONT(x, y + D, lobbyTop)}">` +
+    `<rect class="glass" x="10" y="7" width="${W - 20}" height="${LOBBY - 14}" rx="2"/>` +
+  `</g>`;
+  body += `<g transform="${SIDE(x + W, y + D, lobbyTop)}">` +
+    `<rect class="glass" x="8" y="7" width="${D - 16}" height="${LOBBY - 14}" rx="2"/>` +
+  `</g>`;
+  // the entrance sits on the front face, over the glass
+  body += `<g transform="${FRONT(x, y + D, BASE + 20)}"><rect class="door" x="${W / 2 - 9}" y="0" width="18" height="20" rx="1"/></g>`;
 
-  for (const i of front) {
-    const { x, y } = at(i);
-    const h = heights[i];
-    const zTop = BASE + h;
-
-    let b = box(x, y, BASE, W, D, h, "face");
-    b += box(x + 3, y + 3, zTop, W - 6, D - 6, 5, "face"); // roof cap
-
+  // ---- floors: one .bld per repository, painted bottom → top ----
+  for (let i = 0; i < n; i++) {
+    const z = lobbyTop + i * FH;
     const face = (t, w) =>
       `<g class="face-group" transform="${t}">` +
-        `<rect class="halo" x="-3" y="-3" width="${w + 6}" height="${h + 6}" rx="3"/>` +
-        `<g class="win">${panes(w, h)}</g>` +
+        `<rect class="halo" x="-3" y="-3" width="${w + 6}" height="${FH + 6}" rx="3"/>` +
+        `<g class="win">${panes(w, FH)}</g>` +
       `</g>`;
-    b += face(FRONT(x, y + D, zTop), W);
-    b += face(SIDE(x + W, y + D, zTop), D);
-
-    // a doorway at the base of the front face
-    b += `<g transform="${FRONT(x, y + D, BASE + 22)}"><rect class="door" x="${W / 2 - 7}" y="0" width="14" height="22" rx="1"/></g>`;
-
-    if (i === beacon) {
-      b += box(x + W / 2 - 2, y + D / 2 - 2, zTop + 5, 4, 4, 16, "face");
-      const bp = P(x + W / 2, y + D / 2, zTop + 22);
-      b += `<circle class="beacon-halo" cx="${bp[0].toFixed(1)}" cy="${bp[1].toFixed(1)}" r="7" filter="url(#bloom)"/>` +
-        `<circle class="beacon" cx="${bp[0].toFixed(1)}" cy="${bp[1].toFixed(1)}" r="2.1" filter="url(#glow)"/>`;
-    }
-
-    body += `<g class="bld" data-i="${i}">${b}</g>`;
+    body += `<g class="bld" data-i="${i}">` +
+      box(x, y, z, W, D, FH, "face") +
+      face(FRONT(x, y + D, z + FH), W) +
+      face(SIDE(x + W, y + D, z + FH), D) +
+    `</g>`;
   }
+
+  // ---- roof, mast, beacon ----
+  body += box(x + 5, y + 5, shaftTop, W - 10, D - 10, ROOF, "face");
+  body += `<g transform="${TOP(x + 5, y + 5, shaftTop + ROOF)}"><rect class="detail" x="6" y="6" width="${W - 22}" height="${D - 22}" rx="2"/></g>`;
+  body += box(x + W / 2 - 2, y + D / 2 - 2, shaftTop + ROOF, 4, 4, 20, "face");
+  const bp = P(x + W / 2, y + D / 2, shaftTop + ROOF + 26);
+  body += `<circle class="beacon-halo" cx="${bp[0].toFixed(1)}" cy="${bp[1].toFixed(1)}" r="7" filter="url(#bloom)"/>` +
+    `<circle class="beacon" cx="${bp[0].toFixed(1)}" cy="${bp[1].toFixed(1)}" r="2.1" filter="url(#glow)"/>`;
 
   return { viewBox: K.viewBox, body };
 }

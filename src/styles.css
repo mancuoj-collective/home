@@ -308,7 +308,7 @@ body {
   display: block;
   width: 100%;
   height: auto;
-  max-height: min(46vh, 25rem);
+  max-height: min(54vh, 30rem);
   overflow: visible;
 }
 
@@ -327,6 +327,13 @@ body {
 
 .detail {
   fill: none;
+  stroke: var(--detail);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.glass {
+  fill: var(--glass);
   stroke: var(--detail);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
@@ -417,7 +424,7 @@ body {
   }
 
   .fig svg {
-    max-height: 36vh;
+    max-height: 42vh;
   }
 
   .row .desc {
