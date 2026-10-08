@@ -10,13 +10,10 @@
   --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* hairline figure palette (kernel reads these) */
-  --hairline-plate: #fbfbfa;
-  --hairline-hi: #1a1a18;
-  --hairline-edge: #b0b0ab;
-  --hairline-mid: #d2d2ce;
-  --hairline-lo: #e6e6e3;
-  --hairline-stroke: 1;
+  /* the static line figure's strokes */
+  --fig-edge: #b0b0ab;
+  --fig-mid: #d2d2ce;
+  --fig-lo: #e6e6e3;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -27,11 +24,9 @@
     --line: #232120;
     --accent: #ff5a3c;
 
-    --hairline-plate: #0e0e0d;
-    --hairline-hi: #f1eee7;
-    --hairline-edge: #8f8f8a;
-    --hairline-mid: #55554f;
-    --hairline-lo: #2e2e2b;
+    --fig-edge: #8f8f8a;
+    --fig-mid: #55554f;
+    --fig-lo: #2e2e2b;
   }
 }
 
@@ -81,22 +76,39 @@ body {
 
 .figure {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: clamp(2.2rem, 6vw, 4rem);
+  justify-content: center;
+  margin-bottom: clamp(1.6rem, 4.5vw, 2.8rem);
 }
 
 .fig {
-  width: clamp(220px, 48vw, 340px);
+  width: clamp(140px, 34vw, 190px);
+  height: auto;
+  display: block;
 }
 
-.fig-read {
-  font-family: var(--mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  color: var(--dim);
-  min-height: 1em;
+.fig path {
+  fill: var(--bg);
+  stroke: var(--fig-mid);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.fig .nf {
+  fill: none;
+}
+
+.fig .sil {
+  stroke: var(--fig-edge);
+}
+
+.fig .hi {
+  stroke: var(--fg);
+}
+
+.fig .lo {
+  stroke: var(--fig-lo);
 }
 
 /* ---------- header ---------- */
@@ -258,12 +270,22 @@ body {
 @media (max-width: 560px) {
   .row {
     grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0 1rem;
+  }
+
+  .nm {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .meta {
+    grid-column: 2;
+    grid-row: 1;
   }
 
   .ds {
     grid-column: 1 / -1;
-    margin-top: 0.2rem;
-    white-space: normal;
-    overflow-wrap: anywhere;
+    grid-row: 2;
+    margin-top: 0.15rem;
   }
 }
