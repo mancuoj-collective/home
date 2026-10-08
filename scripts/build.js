@@ -2,6 +2,7 @@ import { mkdir, writeFile, cp, readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { renderIndex } from "../src/template.js";
+import { buildCollective } from "../figure/collective.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const out = join(root, "dist");
@@ -95,9 +96,9 @@ async function build() {
   const repos = await getRepos();
   const html = renderIndex({
     org: org.name || ORG,
-    motto: org.description || `${ORG} — public repositories.`,
     repos,
     css,
+    figure: buildCollective(repos),
   });
 
   await mkdir(out, { recursive: true });
