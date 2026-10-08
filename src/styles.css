@@ -7,10 +7,37 @@
   font-display: swap;
 }
 
+/* ---------- tokens: light (default) ---------- */
 :root {
+  color-scheme: light;
+
+  --bg: #e9eaea;
+  --panel: #f6f6f5;
+  --edge: #d6d8d8;
+  --line: #8e9397;
+  --detail: #c3c6c8;
+  --body: #ececeb;
+  --deck: #f3f3f2;
+  --ink: #6a6f73;
+  --ink-hi: #16181a;
+  --glass: #dcdede;
+
+  --accent: #e0361c;
+  --accent-hi: #ff6a4a;
+  --accent-dim: rgba(224, 54, 28, 0.12);
+
+  --sans: 'Syne', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+
+  --pad: clamp(1.1rem, 4vw, 2.4rem);
+  --maxw: 66rem;
+}
+
+/* ---------- tokens: dark (toggle on) ---------- */
+:root[data-theme='dark'],
+:root:has(.theme-in:checked) {
   color-scheme: dark;
 
-  /* dark hairline panel — only what is "live" takes the accent */
   --bg: #0c0d0e;
   --panel: #141516;
   --edge: #222426;
@@ -25,12 +52,6 @@
   --accent: #ff5a3c;
   --accent-hi: #ff9c82;
   --accent-dim: rgba(255, 90, 60, 0.14);
-
-  --sans: 'Syne', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
-
-  --pad: clamp(1.1rem, 4vw, 2.4rem);
-  --maxw: 66rem;
 }
 
 *,
@@ -103,12 +124,10 @@ body {
 
 .brand .dot {
   color: var(--accent);
-  text-shadow: 0 0 14px var(--accent);
+  text-shadow: 0 0 14px var(--accent-dim);
 }
 
-.stats {
-  display: flex;
-  gap: clamp(0.9rem, 2.6vw, 1.7rem);
+.count {
   font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 0.16em;
@@ -116,19 +135,54 @@ body {
   white-space: nowrap;
 }
 
-.stats b {
-  margin-left: 0.55em;
+.count b {
   color: var(--ink-hi);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.06em;
 }
 
+.top-right {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.8rem, 2.5vw, 1.4rem);
+}
+
+/* a tiny, no-JS light/dark switch (a checkbox styled as a dot) */
+.theme-in {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.theme-in:hover {
+  border-color: var(--ink);
+}
+
+.theme-in:checked {
+  background: var(--ink-hi);
+  border-color: var(--ink-hi);
+}
+
+.theme-in:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* ---------- layout ---------- */
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
   gap: clamp(1.4rem, 4vw, 2.8rem);
   align-items: start;
 }
@@ -148,14 +202,14 @@ body {
 
 .row {
   display: grid;
-  grid-template-columns: 2.4rem minmax(0, 1fr) auto;
+  grid-template-columns: 2.2rem minmax(0, 1fr) auto;
   grid-template-areas:
-    'idx name meta'
+    'idx name stars'
     '. desc desc';
   column-gap: 0.9rem;
-  row-gap: 0.2rem;
+  row-gap: 0.25rem;
   align-items: baseline;
-  padding: 0.9rem 0.35rem;
+  padding: 0.95rem 0.35rem;
   color: inherit;
   text-decoration: none;
   transition: background-color 0.18s ease;
@@ -176,6 +230,9 @@ body {
 
 .row .name {
   grid-area: name;
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
   min-width: 0;
   font-family: var(--sans);
   font-size: clamp(0.98rem, 1.5vw, 1.1rem);
@@ -188,6 +245,14 @@ body {
   transition: color 0.18s ease;
 }
 
+.row .name .dot {
+  flex: none;
+  width: 0.42em;
+  height: 0.42em;
+  border-radius: 50%;
+  background: var(--lang, var(--line));
+}
+
 .row .desc {
   grid-area: desc;
   min-width: 0;
@@ -198,56 +263,33 @@ body {
   text-overflow: ellipsis;
 }
 
-.row .meta {
-  grid-area: meta;
-  display: flex;
-  align-items: baseline;
-  gap: 1rem;
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--line);
-  white-space: nowrap;
-}
-
-.row .lang {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-}
-
-.row .dot {
-  flex: none;
-  width: 0.5em;
-  height: 0.5em;
-  border-radius: 50%;
-  background: var(--lang, var(--line));
-}
-
 .row .stars {
+  grid-area: stars;
   display: flex;
   align-items: baseline;
   gap: 0.4em;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .row .ic-star {
-  width: 0.86em;
-  height: 0.86em;
+  width: 0.9em;
+  height: 0.9em;
   fill: currentColor;
-  opacity: 0.65;
+  opacity: 0.55;
 }
 
 .row:hover,
 .row:focus-visible {
-  background: rgba(255, 255, 255, 0.022);
+  background: color-mix(in srgb, var(--ink-hi) 3%, transparent);
 }
 
 .row:hover .name,
 .row:focus-visible .name {
   color: var(--accent);
-  text-shadow: 0 0 16px var(--accent-dim);
 }
 
 /* ---------- the figure ---------- */
@@ -256,38 +298,21 @@ body {
   position: sticky;
   top: var(--pad);
   margin: 0;
-  display: grid;
-  gap: 0.9rem;
   padding: clamp(1rem, 3vw, 1.7rem);
   background: var(--panel);
   border: 1px solid var(--edge);
   border-radius: 20px;
 }
 
-.cap {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.3rem 1rem;
-  font-size: 0.66rem;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--line);
-}
-
-.cap .hi {
-  color: var(--ink);
-}
-
 .fig svg {
   display: block;
   width: 100%;
   height: auto;
-  max-height: min(48vh, 26rem);
+  max-height: min(46vh, 25rem);
   overflow: visible;
 }
 
-/* shared figure vocabulary (tokens only — never a literal hue) */
+/* shared figure vocabulary — colour only through tokens */
 .face {
   fill: var(--body);
   stroke: var(--line);
@@ -307,99 +332,76 @@ body {
   vector-effect: non-scaling-stroke;
 }
 
-.screen {
-  fill: var(--glass);
-  stroke: var(--detail);
-  stroke-width: 1;
+.bld {
+  --lit: 0;
+}
+
+.pane {
+  fill: var(--pane, var(--glass));
+  stroke: var(--pane-stroke, transparent);
+  stroke-width: 0.6;
   vector-effect: non-scaling-stroke;
+  transition:
+    fill 0.35s ease,
+    stroke 0.35s ease;
 }
 
-.led {
-  fill: var(--detail);
-  transition: fill 0.3s ease;
-}
-
-.power {
-  fill: var(--accent);
+.win {
   filter: url(#soft);
 }
 
-.hot {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.32s ease;
-}
-
-.hot .halo {
+.halo {
   fill: var(--accent);
   filter: url(#bloom);
-  opacity: 0.55;
+  opacity: calc(var(--lit) * 0.42);
+  transition: opacity 0.35s ease;
 }
 
-.hot .beam {
-  fill: var(--accent);
-  filter: url(#soft);
+.door {
+  fill: var(--door, var(--glass));
+  stroke: var(--line);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  transition: fill 0.35s ease;
 }
 
-.hot .led-on {
+.beacon {
   fill: var(--accent-hi);
+  animation: beacon-blink 1.7s steps(1) infinite;
 }
 
-.mod:hover .hot {
-  opacity: 1;
+.beacon-halo {
+  fill: var(--accent);
+  opacity: 0.5;
+  animation: beacon-blink 1.7s steps(1) infinite;
+}
+
+@keyframes beacon-blink {
+  0% {
+    opacity: 1;
+  }
+  45% {
+    opacity: 0.08;
+  }
+}
+
+.bld:hover .halo {
+  opacity: 0.42;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .row,
   .row .name,
-  .hot,
-  .led {
+  .pane,
+  .halo,
+  .door {
     transition: none;
   }
-}
 
-/* ---------- footer ---------- */
-
-.foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.4rem 1.4rem;
-  padding-top: clamp(0.7rem, 2vw, 1.1rem);
-  border-top: 1px solid var(--edge);
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
-  color: var(--line);
-}
-
-.foot a {
-  color: var(--ink);
-  text-decoration: none;
-  transition: color 0.18s ease;
-}
-
-.foot a:hover {
-  color: var(--accent);
-}
-
-.foot .tot {
-  display: flex;
-  align-items: baseline;
-  gap: 0.4em;
-  font-variant-numeric: tabular-nums;
-}
-
-.foot .ic-star {
-  width: 0.86em;
-  height: 0.86em;
-  fill: currentColor;
-  opacity: 0.65;
-}
-
-.empty {
-  padding: 2rem 0;
-  color: var(--line);
+  .beacon,
+  .beacon-halo {
+    animation: none;
+  }
 }
 
 /* ---------- narrow ---------- */
@@ -415,7 +417,7 @@ body {
   }
 
   .fig svg {
-    max-height: 38vh;
+    max-height: 36vh;
   }
 
   .row .desc {

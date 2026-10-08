@@ -13,36 +13,38 @@ function esc(value) {
 }
 
 function row(repo, i) {
-  const lang = repo.lang
-    ? `<span class="lang"><i class="dot" style="--lang:${repo.langColor || "var(--line)"}"></i>${esc(repo.lang)}</span>`
+  const dot = repo.lang
+    ? `<i class="dot" style="--lang:${repo.langColor || "var(--line)"}"></i>`
     : "";
   return `        <li class="repo">
           <a class="row" data-i="${i}" href="${esc(repo.url)}" target="_blank" rel="noopener noreferrer">
             <span class="idx">${String(i + 1).padStart(2, "0")}</span>
-            <span class="name">${esc(repo.name)}</span>
+            <span class="name">${dot}${esc(repo.name)}</span>
             <span class="desc">${esc(repo.desc)}</span>
-            <span class="meta">${lang}<span class="stars">${STAR}${repo.stars}</span></span>
+            <span class="stars">${STAR}${repo.stars}</span>
           </a>
         </li>`;
 }
 
-// One rule per repository: hovering / focusing its row lights that module,
-// and hovering the module echoes back onto the row.
+// One rule per repository: hovering / focusing its row lights that building,
+// and hovering a building echoes back onto its row.
 function hoverCss(repos) {
   return repos
     .map((_, i) => {
       const s = `[data-i="${i}"]`;
       return [
-        `.wrap:has(.row${s}:hover) .mod${s} .hot,`,
-        `.wrap:has(.row${s}:focus-visible) .mod${s} .hot { opacity: 1; }`,
-        `.wrap:has(.mod${s}:hover) .row${s} .name { color: var(--accent); text-shadow: 0 0 16px var(--accent-dim); }`,
+        `.wrap:has(.row${s}:hover) .bld${s},`,
+        `.wrap:has(.row${s}:focus-visible) .bld${s},`,
+        `.wrap:has(.bld${s}:hover) .bld${s} {`,
+        `  --lit: 1; --pane: var(--accent); --pane-stroke: var(--accent-hi); --door: var(--accent);`,
+        `}`,
+        `.wrap:has(.bld${s}:hover) .row${s} .name { color: var(--accent); }`,
       ].join("\n");
     })
     .join("\n");
 }
 
 export function renderIndex({ org, repos, css, figure }) {
-  const total = repos.reduce((sum, r) => sum + r.stars, 0);
   const items = repos.map(row).join("\n");
 
   return `<!doctype html>
@@ -51,7 +53,8 @@ export function renderIndex({ org, repos, css, figure }) {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content="${esc(org)} — an index of public repositories." />
-    <meta name="theme-color" content="#0c0d0e" />
+    <meta name="theme-color" content="#0c0d0e" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#e9eaea" media="(prefers-color-scheme: light)" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="preload" href="syne.woff2" as="font" type="font/woff2" crossorigin />
     <title>${esc(org)}</title>
@@ -66,7 +69,7 @@ ${hoverCss(repos)}
     <svg class="fx" aria-hidden="true" width="0" height="0">
       <defs>
         <filter id="glow" filterUnits="userSpaceOnUse" x="-2000" y="-2000" width="6000" height="6000"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <filter id="soft" filterUnits="userSpaceOnUse" x="-2000" y="-2000" width="6000" height="6000"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="soft" filterUnits="userSpaceOnUse" x="-2000" y="-2000" width="6000" height="6000"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
         <filter id="bloom" filterUnits="userSpaceOnUse" x="-2000" y="-2000" width="6000" height="6000"><feGaussianBlur stdDeviation="8"/></filter>
       </defs>
     </svg>
@@ -76,10 +79,10 @@ ${hoverCss(repos)}
         <h1 class="brand">
           <a href="https://github.com/mancuoj-collective" target="_blank" rel="noopener noreferrer">mancuoj collective<span class="dot">.</span></a>
         </h1>
-        <p class="stats">
-          <span>repos<b>${String(repos.length).padStart(2, "0")}</b></span>
-          <span>stars<b>${String(total).padStart(2, "0")}</b></span>
-        </p>
+        <div class="top-right">
+          <span class="count"><b>${String(repos.length).padStart(2, "0")}</b> repos</span>
+          <input class="theme-in" type="checkbox" id="theme" aria-label="Dark theme" title="Dark / light" />
+        </div>
       </header>
 
       <div class="layout">
@@ -92,17 +95,11 @@ ${items}
   }
 
         <figure class="plate">
-          <figcaption class="cap"><span class="hi">the collective</span><span>hover a repository</span></figcaption>
-          <div class="fig" role="img" aria-label="${esc(org)} drawn as ${repos.length} stacked modules on a plate.">
+          <div class="fig" role="img" aria-label="${esc(org)} drawn as a skyline of ${repos.length} buildings.">
             <svg viewBox="${figure.viewBox}" aria-hidden="true" preserveAspectRatio="xMidYMid meet">${figure.body}</svg>
           </div>
         </figure>
       </div>
-
-      <footer class="foot">
-        <a href="https://github.com/mancuoj-collective" target="_blank" rel="noopener noreferrer">github.com/mancuoj-collective</a>
-        <span class="tot">${STAR}${total}</span>
-      </footer>
     </main>
   </body>
 </html>

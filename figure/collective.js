@@ -1,4 +1,5 @@
-// The figure: "the collective" drawn as a rack of modules, one per repository.
+// The figure: "the collective" drawn as a small skyline — one building per
+// repository, each with a window grid that lights up on hover.
 //
 // Pure string builder — no DOM — so scripts/build.js can render it at build
 // time and ship it as static markup. Hover states are wired in CSS with
@@ -11,11 +12,11 @@ const S = Math.sin(Math.PI / 6);
 
 function kernel(ox, oy) {
   const P = (x, y, z) => [(x - y) * C + ox, (x + y) * S - z + oy];
-  const D = (x, y, z) => [(x - y) * C, (x + y) * S - z];
+  const D3 = (x, y, z) => [(x - y) * C, (x + y) * S - z];
   const plane = (O, U, V) => {
     const o = P(...O);
-    const u = D(...U);
-    const v = D(...V);
+    const u = D3(...U);
+    const v = D3(...V);
     return `matrix(${u[0]} ${u[1]} ${v[0]} ${v[1]} ${o[0]} ${o[1]})`;
   };
   const TOP = (x, y, z) => plane([x, y, z], [1, 0, 0], [0, 1, 0]);
@@ -27,12 +28,10 @@ function kernel(ox, oy) {
     rect(SIDE(x + w, y + d, z + h), d, h, 0, cls) +
     rect(FRONT(x, y + d, z + h), w, h, 0, cls) +
     rect(TOP(x, y, z + h), w, d, 0, `${cls} top`);
-  return { P, D, TOP, FRONT, SIDE, rect, box };
+  return { P, TOP, FRONT, SIDE, rect, box };
 }
 
-// Frame the scene from its extreme 3D corners; the viewBox is the tight
-// projection plus a margin, so the svg scales fluidly with width:100%.
-function frame(points, margin = 0.08) {
+function frame(points, margin = 0.075) {
   const proj = points.map(([x, y, z]) => [(x - y) * C, (x + y) * S - z]);
   const xs = proj.map((p) => p[0]);
   const ys = proj.map((p) => p[1]);
@@ -46,62 +45,86 @@ function frame(points, margin = 0.08) {
   return { ...kernel(m - x0, m - y0), viewBox: `0 0 ${w.toFixed(1)} ${h.toFixed(1)}` };
 }
 
-// ---- geometry (units are arbitrary; the frame normalises them) ----
-const W = 164; // module width  (x)
-const D = 106; // module depth  (y)
-const H = 42; //  module height (z)
-const GAP = 5; //  seam between stacked modules
-const BASE = 10; // ground plate thickness
-const PADX = 24;
-const PADY = 24;
-const BW = W + PADX * 2;
-const BD = D + PADY * 2;
+// ---- geometry (arbitrary units; the frame normalises them) ----
+const W = 48; // building width  (x)
+const D = 60; // building depth  (y)
+const GAP = 16;
+const PAD = 28;
+const BASE = 10;
+const PITCH = 15; // window pane pitch
+
+// a grid of panes drawn in a face-local group (0,0 = face top-left)
+function panes(w, h, inset = 5) {
+  const iw = Math.max(6, w - inset * 2);
+  const ih = Math.max(6, h - inset * 2);
+  const cols = Math.max(2, Math.round(iw / PITCH));
+  const rows = Math.max(2, Math.round(ih / PITCH));
+  const pw = iw / cols;
+  const ph = ih / rows;
+  const g = 2;
+  let s = "";
+  for (let c = 0; c < cols; c++)
+    for (let r = 0; r < rows; r++)
+      s += `<rect class="pane" x="${(inset + c * pw + g / 2).toFixed(2)}" y="${(inset + r * ph + g / 2).toFixed(2)}" width="${(pw - g).toFixed(2)}" height="${(ph - g).toFixed(2)}"/>`;
+  return s;
+}
 
 export function buildCollective(repos) {
   const n = Math.max(1, repos.length);
-  const topZ = BASE + n * (H + GAP);
+  // taller = more stars, plus a stable stagger so the skyline reads as a row
+  const heights = repos.map((r, i) => 78 + Math.min(r.stars || 0, 9) * 14 + (i % 3) * 18);
+  const maxH = Math.max(...heights);
+  const rowW = n * W + (n - 1) * GAP;
+  const BW = rowW + PAD * 2;
+  const BD = D + PAD * 2;
+  const mastZ = BASE + maxH + 26;
+
   const K = frame([
     [0, 0, 0], [BW, 0, 0], [0, BD, 0], [BW, BD, 0],
-    [0, 0, topZ], [BW, 0, topZ], [0, BD, topZ], [BW, BD, topZ],
+    [0, 0, mastZ], [BW, 0, mastZ], [0, BD, mastZ], [BW, BD, mastZ],
   ]);
-  const { TOP, FRONT, rect, box } = K;
+  const { P, TOP, FRONT, SIDE, box } = K;
 
-  const x = PADX;
-  const y = PADY;
-
-  // ground plate: a hairline inset near its rim, plus a screw at each corner
+  // ---- ground plate ----
   let body = box(0, 0, 0, BW, BD, BASE, "face");
-  body += `<g transform="${TOP(0, 0, BASE)}"><rect class="detail" x="9" y="9" width="${BW - 18}" height="${BD - 18}" rx="4"/></g>`;
-  for (const [sx, sy] of [[13, 13], [BW - 13, 13], [13, BD - 13], [BW - 13, BD - 13]]) {
-    body += `<g transform="${TOP(sx, sy, BASE)}"><circle class="detail" r="3.4"/></g>`;
-  }
-  // an always-on indicator on the plate's front edge
-  body += `<g transform="${FRONT(0, BD, BASE)}"><rect class="power" x="16" y="3.3" width="3.4" height="3.4" rx="1.2"/></g>`;
+  body += `<g transform="${TOP(0, 0, BASE)}">` +
+    `<rect class="detail" x="9" y="9" width="${BW - 18}" height="${BD - 18}" rx="4"/>` +
+    `<line class="detail" x1="12" y1="${BD - 12}" x2="${BW - 12}" y2="${BD - 12}"/>` +
+    [[14, 14], [BW - 14, 14], [14, BD - 14], [BW - 14, BD - 14]].map(([sx, sy]) => `<circle class="detail" cx="${sx}" cy="${sy}" r="3.2"/>`).join("") +
+  `</g>`;
 
+  // ---- buildings, drawn left → right (far → near) ----
+  let mastDone = false;
   for (let i = 0; i < n; i++) {
-    const z = BASE + i * (H + GAP);
-    const front = FRONT(x, y + D, z + H);
-    const top = TOP(x, y, z + H);
-    const ledY = (H - 6) / 2;
+    const x = PAD + i * (W + GAP);
+    const y = PAD;
+    const h = heights[i];
+    const zTop = BASE + h;
+    const tallest = h === maxH && !mastDone;
 
-    body +=
-      `<g class="mod" data-i="${i}">` +
-        box(x, y, z, W, D, H, "face") +
-        // top face: a hairline vent
-        `<g transform="${top}"><rect class="detail" x="14" y="14" width="${W - 28}" height="${D - 28}" rx="3"/></g>` +
-        // front face: recessed screen, content lines, an LED, and the lit overlay
-        `<g transform="${front}">` +
-          `<rect class="screen" x="12" y="9" width="124" height="${H - 18}" rx="2"/>` +
-          `<line class="detail" x1="20" y1="17" x2="88" y2="17"/>` +
-          `<line class="detail" x1="20" y1="23" x2="58" y2="23"/>` +
-          `<rect class="led" x="146" y="${ledY}" width="6" height="6" rx="2"/>` +
-          `<g class="hot">` +
-            `<rect class="halo" x="5" y="-2" width="138" height="${H + 4}" rx="6"/>` +
-            `<rect class="beam" x="12" y="9" width="124" height="${H - 18}" rx="2"/>` +
-            `<rect class="led-on" x="146" y="${ledY}" width="6" height="6" rx="2"/>` +
-          `</g>` +
-        `</g>` +
+    let b = box(x, y, BASE, W, D, h, "face");
+    b += box(x + 3, y + 3, zTop, W - 6, D - 6, 5, "face"); // roof cap
+
+    const face = (t, w) =>
+      `<g class="face-group" transform="${t}">` +
+        `<rect class="halo" x="-3" y="-3" width="${w + 6}" height="${h + 6}" rx="3"/>` +
+        `<g class="win">${panes(w, h)}</g>` +
       `</g>`;
+    b += face(FRONT(x, y + D, zTop), W);
+    b += face(SIDE(x + W, y + D, zTop), D);
+
+    // a doorway at the base of the front face
+    b += `<g transform="${FRONT(x, y + D, BASE + 22)}"><rect class="door" x="${W / 2 - 7}" y="0" width="14" height="22" rx="1"/></g>`;
+
+    if (tallest) {
+      mastDone = true;
+      b += box(x + W / 2 - 2, y + D / 2 - 2, zTop + 5, 4, 4, 16, "face");
+      const bp = P(x + W / 2, y + D / 2, zTop + 22);
+      b += `<circle class="beacon-halo" cx="${bp[0].toFixed(1)}" cy="${bp[1].toFixed(1)}" r="7" filter="url(#bloom)"/>` +
+        `<circle class="beacon" cx="${bp[0].toFixed(1)}" cy="${bp[1].toFixed(1)}" r="2.1" filter="url(#glow)"/>`;
+    }
+
+    body += `<g class="bld" data-i="${i}">${b}</g>`;
   }
 
   return { viewBox: K.viewBox, body };
