@@ -64,7 +64,10 @@ function tierScale(t) {
   return 0.64;
 }
 
-// a grid of panes drawn in a face-local group (0,0 = face top-left)
+// A grid of panes drawn in a face-local group (0,0 = face top-left). The rects
+// carry no paint of their own: a <use> that references the grid sets fill and
+// stroke, and the rects inherit them. So a grid is defined once per face width
+// and every floor reuses it — two <use> nodes per floor instead of ~26 rects.
 function panes(w, h, inset = 5) {
   const iw = Math.max(6, w - inset * 2);
   const ih = Math.max(6, h - inset * 2);
@@ -76,9 +79,13 @@ function panes(w, h, inset = 5) {
   let s = "";
   for (let c = 0; c < cols; c++)
     for (let r = 0; r < rows; r++)
-      s += `<rect class="pane" x="${(inset + c * pw + g / 2).toFixed(2)}" y="${(inset + r * ph + g / 2).toFixed(2)}" width="${(pw - g).toFixed(2)}" height="${(ph - g).toFixed(2)}"/>`;
+      s += `<rect vector-effect="non-scaling-stroke" x="${(inset + c * pw + g / 2).toFixed(2)}" y="${(inset + r * ph + g / 2).toFixed(2)}" width="${(pw - g).toFixed(2)}" height="${(ph - g).toFixed(2)}"/>`;
   return s;
 }
+
+// The id of the pane grid for a face of width w (the tiers give only a few
+// distinct widths, so the ids stay few).
+const paneId = (w) => `panes-${w.toFixed(2).replace(".", "_")}`;
 
 export function buildCollective(repos) {
   const n = Math.max(1, repos.length);
@@ -105,8 +112,18 @@ export function buildCollective(repos) {
     return { s, w, d, x: PAD + (W - w) / 2, y: PAD + (D - d) / 2 };
   };
 
+  // one pane grid per distinct face width, referenced by every matching floor
+  const widths = new Set();
+  for (let k = 0; k < n; k++) {
+    const { w, d } = tier(n === 1 ? 0 : k / (n - 1));
+    widths.add(w);
+    widths.add(d);
+  }
+  const grids = [...widths].map((w) => `<g id="${paneId(w)}">${panes(w, FH)}</g>`).join("");
+
   // ---- ground plate ----
-  let body = box(0, 0, 0, BW, BD, BASE, "face");
+  let body = `<defs>${grids}</defs>`;
+  body += box(0, 0, 0, BW, BD, BASE, "face");
   body += `<g transform="${TOP(0, 0, BASE)}">` +
     `<rect class="detail" x="9" y="9" width="${BW - 18}" height="${BD - 18}" rx="4"/>` +
     [[14, 14], [BW - 14, 14], [14, BD - 14], [BW - 14, BD - 14]].map(([sx, sy]) => `<circle class="detail" cx="${sx}" cy="${sy}" r="3.2"/>`).join("") +
@@ -131,7 +148,7 @@ export function buildCollective(repos) {
     const face = (t, fw) =>
       `<g class="face-group" transform="${t}">` +
         `<rect class="halo" x="-3" y="-3" width="${fw + 6}" height="${FH + 6}" rx="3"/>` +
-        `<g class="win">${panes(fw, FH)}</g>` +
+        `<g class="win"><use class="pane" href="#${paneId(fw)}"/></g>` +
       `</g>`;
     body += `<g class="bld" data-i="${i}">` +
       box(x, y, z, w, d, FH, "face") +

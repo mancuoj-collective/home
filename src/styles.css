@@ -350,11 +350,12 @@ body {
   --lit: 0;
 }
 
+/* panes are <use> references to a shared grid; the shadow rects inherit fill
+   and stroke from here (they carry their own non-scaling-stroke) */
 .pane {
   fill: var(--pane, var(--glass));
   stroke: var(--pane-stroke, transparent);
   stroke-width: 0.6;
-  vector-effect: non-scaling-stroke;
   transition:
     fill 0.35s ease,
     stroke 0.35s ease;
