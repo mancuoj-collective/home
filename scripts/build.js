@@ -1,4 +1,4 @@
-import { mkdir, writeFile, cp, readFile } from "node:fs/promises";
+import { mkdir, writeFile, cp, readFile, rm } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { renderIndex } from "../src/template.js";
@@ -39,19 +39,49 @@ const LANG_COLORS = {
   Nix: "#7e7eff",
 };
 
+const TIMEOUT_MS = 15_000;
+const ATTEMPTS = 3;
+
+// fetch with a timeout, retrying transient failures (network, 429, 5xx).
+// Set GITHUB_TOKEN in the Netlify environment to raise the API rate limit.
+async function ghFetch(url) {
+  const headers = {
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+    "User-Agent": "mancuoj-collective-home",
+    ...(TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {}),
+  };
+
+  let lastErr;
+  for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
+    try {
+      const res = await fetch(url, { headers, signal: AbortSignal.timeout(TIMEOUT_MS) });
+      if (res.ok || (res.status < 500 && res.status !== 429)) return res;
+      lastErr = new Error(`GitHub API ${res.status} ${res.statusText}`);
+    } catch (err) {
+      lastErr = err;
+    }
+    if (attempt < ATTEMPTS) await new Promise((r) => setTimeout(r, attempt * 500));
+  }
+  throw lastErr;
+}
+
+async function getOrg() {
+  // Non-critical: the page falls back to the org id.
+  try {
+    const res = await ghFetch(`https://api.github.com/orgs/${ORG}`);
+    return res.ok ? await res.json() : {};
+  } catch {
+    return {};
+  }
+}
+
 async function getRepos() {
   const repos = [];
   let url = `https://api.github.com/orgs/${ORG}/repos?type=public&per_page=100&sort=pushed&direction=desc`;
 
   for (;;) {
-    const res = await fetch(url, {
-      headers: {
-        Accept: "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": "mancuoj-collective-home",
-        ...(TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {}),
-      },
-    });
+    const res = await ghFetch(url);
 
     if (!res.ok) {
       const body = await res.text().catch(() => "");
@@ -84,12 +114,7 @@ async function getRepos() {
 
 async function build() {
   const [org, css] = await Promise.all([
-    fetch(`https://api.github.com/orgs/${ORG}`, {
-      headers: {
-        Accept: "application/vnd.github+json",
-        ...(TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {}),
-      },
-    }).then((r) => (r.ok ? r.json() : {})),
+    getOrg(),
     readFile(join(root, "src", "styles.css"), "utf8"),
   ]);
 
@@ -101,6 +126,8 @@ async function build() {
     figure: buildCollective(repos),
   });
 
+  // Rebuild dist from scratch, so files deleted from public/ leave the site.
+  await rm(out, { recursive: true, force: true });
   await mkdir(out, { recursive: true });
   await Promise.all([
     writeFile(join(out, "index.html"), html),
