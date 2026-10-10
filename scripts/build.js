@@ -42,6 +42,10 @@ const LANG_COLORS = {
 const TIMEOUT_MS = 15_000;
 const ATTEMPTS = 3;
 
+// Filled from the first GitHub response: shows whether GITHUB_TOKEN is in use
+// (5000/h authenticated vs 60/h anonymous).
+let apiRate = "";
+
 // fetch with a timeout, retrying transient failures (network, 429, 5xx).
 // Set GITHUB_TOKEN in the Netlify environment to raise the API rate limit.
 async function ghFetch(url) {
@@ -83,6 +87,12 @@ async function getRepos() {
   for (;;) {
     const res = await ghFetch(url);
 
+    if (!apiRate) {
+      const limit = res.headers.get("x-ratelimit-limit");
+      const remaining = res.headers.get("x-ratelimit-remaining");
+      if (limit) apiRate = `${remaining}/${limit} left${TOKEN ? "" : " (anonymous)"}`;
+    }
+
     if (!res.ok) {
       const body = await res.text().catch(() => "");
       throw new Error(`GitHub API ${res.status} ${res.statusText}\n${body}`);
@@ -119,12 +129,14 @@ async function build() {
   ]);
 
   const repos = await getRepos();
-  const html = renderIndex({
-    org: org.name || ORG,
-    repos,
-    css,
-    figure: buildCollective(repos),
-  });
+  const html =
+    `<!-- github api: ${apiRate || "unknown"} -->\n` +
+    renderIndex({
+      org: org.name || ORG,
+      repos,
+      css,
+      figure: buildCollective(repos),
+    });
 
   // Rebuild dist from scratch, so files deleted from public/ leave the site.
   await rm(out, { recursive: true, force: true });
@@ -135,7 +147,7 @@ async function build() {
   ]);
 
   console.log(
-    `built dist/index.html — ${repos.length} repos, ${repos.reduce((s, r) => s + r.stars, 0)} stars`,
+    `built dist/index.html — ${repos.length} repos, ${repos.reduce((s, r) => s + r.stars, 0)} stars · github api ${apiRate || "unknown"}`,
   );
 }
 
