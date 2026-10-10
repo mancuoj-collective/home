@@ -4,6 +4,9 @@
 
 const STAR = `<svg class="ic-star" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .9l2.06 4.35 4.74.63-3.5 3.28.9 4.7L8 11.6l-4.2 2.26.9-4.7-3.5-3.28 4.74-.63z"/></svg>`;
 
+// Absolute origin for the share card and canonical link (og:image must be absolute).
+const SITE = "https://collective.mancuoj.me";
+
 function esc(value) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -65,18 +68,38 @@ export function layoutHtml({ org, repos, figure }) {
 }
 
 export function renderIndex({ org, repos, css, figure }) {
+  const title = org;
+  const desc = `${org} — repositories, stacked.`;
   return `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="description" content="${esc(org)} — an index of public repositories." />
+    <title>${esc(title)}</title>
+    <meta name="description" content="${esc(desc)}" />
+    <link rel="canonical" href="${SITE}/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="mancuoj collective" />
+    <meta property="og:title" content="${esc(title)}" />
+    <meta property="og:description" content="${esc(desc)}" />
+    <meta property="og:url" content="${SITE}/" />
+    <meta property="og:image" content="${SITE}/og.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="${esc(org)} drawn as a tower with ${repos.length} floors." />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${esc(title)}" />
+    <meta name="twitter:description" content="${esc(desc)}" />
+    <meta name="twitter:image" content="${SITE}/og.png" />
+
     <meta name="theme-color" content="#0c0d0e" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#e9eaea" media="(prefers-color-scheme: light)" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="preload" href="syne.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="dm-mono-400.woff2" as="font" type="font/woff2" crossorigin />
-    <title>${esc(org)}</title>
 
     <script>
       // apply a remembered theme before first paint, so there is no flash
