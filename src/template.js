@@ -26,9 +26,9 @@ function row(repo, i) {
         </li>`;
 }
 
-// One rule per repository: hovering / focusing its row lights that building,
-// and hovering a building echoes back onto its row.
-function hoverCss(repos) {
+// One rule per repository: hovering / focusing its row lights that floor,
+// and hovering a floor echoes back onto its row.
+export function hoverCss(repos) {
   return repos
     .map((_, i) => {
       const s = `[data-i="${i}"]`;
@@ -44,9 +44,27 @@ function hoverCss(repos) {
     .join("\n");
 }
 
-export function renderIndex({ org, repos, css, figure }) {
+// The two-column body (index + figure). Exported so the dev-only break-ui
+// fixture can swap datasets through the exact same rendering path.
+export function layoutHtml({ org, repos, figure }) {
   const items = repos.map(row).join("\n");
+  const list = repos.length
+    ? `        <ol class="repos" aria-label="Public repositories">\n${items}\n        </ol>`
+    : `        <p class="empty">No public repositories yet.</p>`;
+  return `${list}
 
+        <figure class="plate">
+          <div class="plate-head">
+            <span class="count"><b>${String(repos.length).padStart(2, "0")}</b> repos</span>
+            <input class="theme-in" type="checkbox" id="theme" aria-label="Dark theme" title="Dark / light" />
+          </div>
+          <div class="fig" role="img" aria-label="${esc(org)} drawn as a tower with ${repos.length} floors.">
+            <svg viewBox="${figure.viewBox}" aria-hidden="true" preserveAspectRatio="xMidYMid meet">${figure.body}</svg>
+          </div>
+        </figure>`;
+}
+
+export function renderIndex({ org, repos, css, figure }) {
   return `<!doctype html>
 <html lang="en">
   <head>
@@ -82,23 +100,7 @@ ${hoverCss(repos)}
       </header>
 
       <div class="layout">
-${
-    repos.length
-      ? `        <ol class="repos" aria-label="Public repositories">
-${items}
-        </ol>`
-      : `        <p class="empty">No public repositories yet.</p>`
-  }
-
-        <figure class="plate">
-          <div class="plate-head">
-            <span class="count"><b>${String(repos.length).padStart(2, "0")}</b> repos</span>
-            <input class="theme-in" type="checkbox" id="theme" aria-label="Dark theme" title="Dark / light" />
-          </div>
-          <div class="fig" role="img" aria-label="${esc(org)} drawn as a tower with ${repos.length} floors.">
-            <svg viewBox="${figure.viewBox}" aria-hidden="true" preserveAspectRatio="xMidYMid meet">${figure.body}</svg>
-          </div>
-        </figure>
+${layoutHtml({ org, repos, figure })}
       </div>
     </main>
   </body>

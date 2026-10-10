@@ -1,6 +1,7 @@
-// The figure: "the collective" drawn as a single tower — one floor per
-// repository, each floor's window band lighting up on hover. A tower keeps the
-// drawing clean at any repository count, however many floors there are.
+// The figure: "the collective" drawn as a single setback tower — one floor per
+// repository, each floor's window band lighting up on hover. The tower steps in
+// as it rises (a podium, then two inset tiers), so the silhouette has some
+// Empire-State character instead of being a plain tube.
 //
 // Pure string builder — no DOM — so scripts/build.js can render it at build
 // time and ship it as static markup. Hover states are wired in CSS with
@@ -47,13 +48,21 @@ function frame(points, margin = 0.075) {
 }
 
 // ---- geometry (arbitrary units; the frame normalises them) ----
-const W = 70; //  tower width  (x)
-const D = 56; //  tower depth  (y)
-const PAD = 24;
+const W = 80; //  shaft width  (x), at the base tier
+const D = 64; //  shaft depth  (y)
+const PAD = 26;
 const BASE = 10; //  plate thickness
-const LOBBY = 30; // lobby height
+const LOBBY = 32; // podium height (a touch wider than the shaft)
+const PODIUM = 8; //  how far the podium overhangs the shaft, each side
 const ROOF = 9;
 const PITCH = 14; // window pane pitch
+
+// how much of the shaft footprint survives at a given height (0 bottom → 1 top)
+function tierScale(t) {
+  if (t < 0.4) return 1;
+  if (t < 0.72) return 0.82;
+  return 0.64;
+}
 
 // a grid of panes drawn in a face-local group (0,0 = face top-left)
 function panes(w, h, inset = 5) {
@@ -75,19 +84,26 @@ export function buildCollective(repos) {
   const n = Math.max(1, repos.length);
   // more floors ⇒ shorter floors, so a tall tower never runs away
   const FH = Math.max(30, Math.min(50, Math.round(170 / n)));
-  const BW = W + PAD * 2;
-  const BD = D + PAD * 2;
   const lobbyTop = BASE + LOBBY;
   const shaftTop = lobbyTop + n * FH;
   const mastZ = shaftTop + ROOF + 22;
+
+  const BW = W + PAD * 2;
+  const BD = D + PAD * 2;
 
   const K = frame([
     [0, 0, 0], [BW, 0, 0], [0, BD, 0], [BW, BD, 0],
     [0, 0, mastZ], [BW, 0, mastZ], [0, BD, mastZ], [BW, BD, mastZ],
   ]);
   const { P, TOP, FRONT, SIDE, box } = K;
-  const x = PAD;
-  const y = PAD;
+
+  // the footprint of a floor at height fraction t, centred on the shaft
+  const tier = (t) => {
+    const s = tierScale(t);
+    const w = W * s;
+    const d = D * s;
+    return { s, w, d, x: PAD + (W - w) / 2, y: PAD + (D - d) / 2 };
+  };
 
   // ---- ground plate ----
   let body = box(0, 0, 0, BW, BD, BASE, "face");
@@ -96,40 +112,40 @@ export function buildCollective(repos) {
     [[14, 14], [BW - 14, 14], [14, BD - 14], [BW - 14, BD - 14]].map(([sx, sy]) => `<circle class="detail" cx="${sx}" cy="${sy}" r="3.2"/>`).join("") +
   `</g>`;
 
-  // ---- lobby ----
-  body += box(x, y, BASE, W, D, LOBBY, "face");
-  body += `<g transform="${TOP(x, y, lobbyTop)}"><rect class="detail" x="8" y="8" width="${W - 16}" height="${D - 16}" rx="3"/></g>`;
-  body += `<g transform="${FRONT(x, y + D, lobbyTop)}">` +
-    `<rect class="glass" x="10" y="7" width="${W - 20}" height="${LOBBY - 14}" rx="2"/>` +
-  `</g>`;
-  body += `<g transform="${SIDE(x + W, y + D, lobbyTop)}">` +
-    `<rect class="glass" x="8" y="7" width="${D - 16}" height="${LOBBY - 14}" rx="2"/>` +
-  `</g>`;
-  // the entrance sits on the front face, over the glass
-  body += `<g transform="${FRONT(x, y + D, BASE + 20)}"><rect class="door" x="${W / 2 - 9}" y="0" width="18" height="20" rx="1"/></g>`;
+  // ---- podium (a slightly wider lobby) ----
+  const px = PAD - PODIUM;
+  const py = PAD - PODIUM;
+  const pw = W + PODIUM * 2;
+  const pd = D + PODIUM * 2;
+  body += box(px, py, BASE, pw, pd, LOBBY, "face");
+  body += `<g transform="${TOP(px, py, lobbyTop)}"><rect class="detail" x="7" y="7" width="${pw - 14}" height="${pd - 14}" rx="3"/></g>`;
+  body += `<g transform="${FRONT(px, py + pd, lobbyTop)}"><rect class="glass" x="10" y="7" width="${pw - 20}" height="${LOBBY - 14}" rx="2"/></g>`;
+  body += `<g transform="${SIDE(px + pw, py + pd, lobbyTop)}"><rect class="glass" x="10" y="7" width="${pd - 20}" height="${LOBBY - 14}" rx="2"/></g>`;
+  body += `<g transform="${FRONT(px, py + pd, BASE + 22)}"><rect class="door" x="${pw / 2 - 9}" y="0" width="18" height="22" rx="1"/></g>`;
 
-  // ---- floors: painted bottom → top, so the FIRST repository ends up on the
-  // top floor (list order reads top → bottom, same as the tower) ----
+  // ---- floors: painted bottom → top, the FIRST repository ends up on top ----
   for (let k = 0; k < n; k++) {
-    const i = n - 1 - k;
+    const i = n - 1 - k; // repo index: bottom floor is the last repo
+    const { w, d, x, y } = tier(n === 1 ? 0 : k / (n - 1));
     const z = lobbyTop + k * FH;
-    const face = (t, w) =>
+    const face = (t, fw) =>
       `<g class="face-group" transform="${t}">` +
-        `<rect class="halo" x="-3" y="-3" width="${w + 6}" height="${FH + 6}" rx="3"/>` +
-        `<g class="win">${panes(w, FH)}</g>` +
+        `<rect class="halo" x="-3" y="-3" width="${fw + 6}" height="${FH + 6}" rx="3"/>` +
+        `<g class="win">${panes(fw, FH)}</g>` +
       `</g>`;
     body += `<g class="bld" data-i="${i}">` +
-      box(x, y, z, W, D, FH, "face") +
-      face(FRONT(x, y + D, z + FH), W) +
-      face(SIDE(x + W, y + D, z + FH), D) +
+      box(x, y, z, w, d, FH, "face") +
+      face(FRONT(x, y + d, z + FH), w) +
+      face(SIDE(x + w, y + d, z + FH), d) +
     `</g>`;
   }
 
-  // ---- roof, mast, beacon ----
-  body += box(x + 5, y + 5, shaftTop, W - 10, D - 10, ROOF, "face");
-  body += `<g transform="${TOP(x + 5, y + 5, shaftTop + ROOF)}"><rect class="detail" x="6" y="6" width="${W - 22}" height="${D - 22}" rx="2"/></g>`;
-  body += box(x + W / 2 - 2, y + D / 2 - 2, shaftTop + ROOF, 4, 4, 20, "face");
-  const bp = P(x + W / 2, y + D / 2, shaftTop + ROOF + 26);
+  // ---- roof on the top floor's (inset) footprint ----
+  const top = tier(1);
+  body += box(top.x + 4, top.y + 4, shaftTop, top.w - 8, top.d - 8, ROOF, "face");
+  body += `<g transform="${TOP(top.x + 4, top.y + 4, shaftTop + ROOF)}"><rect class="detail" x="5" y="5" width="${top.w - 18}" height="${top.d - 18}" rx="2"/></g>`;
+  body += box(top.x + top.w / 2 - 2, top.y + top.d / 2 - 2, shaftTop + ROOF, 4, 4, 20, "face");
+  const bp = P(top.x + top.w / 2, top.y + top.d / 2, shaftTop + ROOF + 26);
   body += `<circle class="beacon-halo" cx="${bp[0].toFixed(1)}" cy="${bp[1].toFixed(1)}" r="7" filter="url(#bloom)"/>` +
     `<circle class="beacon" cx="${bp[0].toFixed(1)}" cy="${bp[1].toFixed(1)}" r="2.1" filter="url(#glow)"/>`;
 
