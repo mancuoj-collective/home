@@ -19,11 +19,14 @@ function row(repo, i) {
   const dot = repo.lang
     ? `<i class="dot" style="--lang:${repo.langColor || "var(--line)"}"></i>`
     : "";
+  // The name and description are single-line with ellipsis, so carry the full
+  // text in title: hovering a clipped row reveals what was cut.
+  const descTitle = repo.desc ? ` title="${esc(repo.desc)}"` : "";
   return `        <li class="repo">
           <a class="row" data-i="${i}" href="${esc(repo.url)}" target="_blank" rel="noopener noreferrer">
             <span class="idx">${String(i + 1).padStart(2, "0")}</span>
-            <span class="name">${dot}${esc(repo.name)}</span>
-            <span class="desc">${esc(repo.desc)}</span>
+            <span class="name" title="${esc(repo.name)}">${dot}${esc(repo.name)}</span>
+            <span class="desc"${descTitle}>${esc(repo.desc)}</span>
             <span class="stars">${STAR}${repo.stars}</span>
           </a>
         </li>`;
