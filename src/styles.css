@@ -17,13 +17,6 @@
   font-style: normal;
   font-display: swap;
 }
-@font-face {
-  font-family: 'DM Mono';
-  src: url('dm-mono-500.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
 
 /* ---------- tokens ----------
    Defaults follow the visitor's system theme (color-scheme: light dark).
@@ -145,7 +138,7 @@ body {
 
 .count b {
   color: var(--ink-hi);
-  font-weight: 500;
+  font-weight: 400;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.06em;
 }
