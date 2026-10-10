@@ -75,6 +75,7 @@ export function renderIndex({ org, repos, css, figure }) {
     <meta name="theme-color" content="#e9eaea" media="(prefers-color-scheme: light)" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="preload" href="syne.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="dm-mono-400.woff2" as="font" type="font/woff2" crossorigin />
     <title>${esc(org)}</title>
 
     <script>
