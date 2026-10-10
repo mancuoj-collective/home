@@ -1,1 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#e0361c"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="mancuoj collective">
+  <title>mancuoj collective</title>
+  <style>
+    .m { fill: #12110d; }
+    @media (prefers-color-scheme: dark) {
+      .m { fill: #ffffff; }
+    }
+  </style>
+  <rect class="m" x="3" y="11" width="7" height="18"/>
+  <rect x="12.5" y="3" width="7" height="26" fill="#e0361c"/>
+  <rect class="m" x="22" y="16" width="7" height="13"/>
+</svg>

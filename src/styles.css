@@ -7,24 +7,27 @@
   font-display: swap;
 }
 
-/* ---------- tokens: light (default) ---------- */
+/* ---------- tokens ----------
+   Defaults follow the visitor's system theme (color-scheme: light dark).
+   An explicit choice is written to data-theme by the small script in the page
+   and remembered in localStorage. */
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
 
-  --bg: #e9eaea;
-  --panel: #f6f6f5;
-  --edge: #d6d8d8;
-  --line: #8e9397;
-  --detail: #c3c6c8;
-  --body: #ececeb;
-  --deck: #f3f3f2;
-  --ink: #6a6f73;
-  --ink-hi: #16181a;
-  --glass: #dcdede;
+  --bg: light-dark(#e9eaea, #0c0d0e);
+  --panel: light-dark(#f6f6f5, #141516);
+  --edge: light-dark(#d6d8d8, #222426);
+  --line: light-dark(#8e9397, #474c50);
+  --detail: light-dark(#c3c6c8, #34383b);
+  --body: light-dark(#ececeb, #17181a);
+  --deck: light-dark(#f3f3f2, #1b1d1f);
+  --ink: light-dark(#6a6f73, #868b8f);
+  --ink-hi: light-dark(#16181a, #e6e8e9);
+  --glass: light-dark(#dcdede, #0f1011);
 
-  --accent: #e0361c;
-  --accent-hi: #ff6a4a;
-  --accent-dim: rgba(224, 54, 28, 0.12);
+  --accent: light-dark(#e0361c, #ff5a3c);
+  --accent-hi: light-dark(#ff6a4a, #ff9c82);
+  --accent-dim: light-dark(rgba(224, 54, 28, 0.12), rgba(255, 90, 60, 0.14));
 
   --sans: 'Syne', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
@@ -33,25 +36,12 @@
   --maxw: 66rem;
 }
 
-/* ---------- tokens: dark (toggle on) ---------- */
-:root[data-theme='dark'],
-:root:has(.theme-in:checked) {
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
   color-scheme: dark;
-
-  --bg: #0c0d0e;
-  --panel: #141516;
-  --edge: #222426;
-  --line: #474c50;
-  --detail: #34383b;
-  --body: #17181a;
-  --deck: #1b1d1f;
-  --ink: #868b8f;
-  --ink-hi: #e6e8e9;
-  --glass: #0f1011;
-
-  --accent: #ff5a3c;
-  --accent-hi: #ff9c82;
-  --accent-dim: rgba(255, 90, 60, 0.14);
 }
 
 *,

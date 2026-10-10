@@ -77,6 +77,14 @@ export function renderIndex({ org, repos, css, figure }) {
     <link rel="preload" href="syne.woff2" as="font" type="font/woff2" crossorigin />
     <title>${esc(org)}</title>
 
+    <script>
+      // apply a remembered theme before first paint, so there is no flash
+      try {
+        const saved = localStorage.getItem("theme");
+        if (saved === "light" || saved === "dark") document.documentElement.dataset.theme = saved;
+      } catch (e) {}
+    </script>
+
     <style>
 ${css}
 ${hoverCss(repos)}
@@ -103,6 +111,25 @@ ${hoverCss(repos)}
 ${layoutHtml({ org, repos, figure })}
       </div>
     </main>
+
+    <script>
+      // theme: follow the system by default, remember an explicit choice
+      (function () {
+        const root = document.documentElement;
+        const box = document.querySelector(".theme-in");
+        if (!box) return;
+        const mq = window.matchMedia("(prefers-color-scheme: dark)");
+        const current = () => root.dataset.theme || (mq.matches ? "dark" : "light");
+        const sync = () => { box.checked = current() === "dark"; };
+        sync();
+        mq.addEventListener("change", () => { if (!root.dataset.theme) sync(); });
+        box.addEventListener("change", () => {
+          const next = box.checked ? "dark" : "light";
+          root.dataset.theme = next;
+          try { localStorage.setItem("theme", next); } catch (e) {}
+        });
+      })();
+    </script>
   </body>
 </html>
 `;
