@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "bun run scripts/build.js",
-    "preview": "bun run scripts/build.js && bun run scripts/serve.js"
+    "build": "node scripts/build.js",
+    "preview": "node scripts/build.js && node scripts/serve.js"
   }
 }
