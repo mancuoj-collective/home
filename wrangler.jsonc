@@ -1,0 +1,10 @@
+{
+  "name": "mancuoj-collective",
+  "compatibility_date": "2026-10-19",
+  // Built by `npm run build` (node scripts/build.js).
+  "assets": {
+    "directory": "./dist"
+  }
+  // The collective.mancuoj.me custom domain is attached in the Cloudflare
+  // dashboard after the Netlify CNAME is removed, not from this file.
+}

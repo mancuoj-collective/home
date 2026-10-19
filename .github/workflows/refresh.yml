@@ -2,7 +2,7 @@ name: Refresh
 
 on:
   schedule:
-    # Trigger a Netlify build every 6 hours to refresh star counts.
+    # Trigger a build every 6 hours to refresh star counts.
     - cron: "17 */6 * * *"
   workflow_dispatch:
 
@@ -10,4 +10,15 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - run: curl -fsS -X POST -d '{}' "${{ secrets.NETLIFY_BUILD_HOOK }}"
+      # Cloudflare Workers deploy hook. Set the CF_DEPLOY_HOOK secret once the
+      # Worker is created in the Cloudflare dashboard.
+      - name: Trigger build
+        run: |
+          hook="${{ secrets.CF_DEPLOY_HOOK }}"
+          if [ -z "$hook" ]; then
+            echo "CF_DEPLOY_HOOK is not set yet; skipping."
+            exit 0
+          fi
+          curl -fsS -X POST -d '{}' "$hook"
+      # Netlify fallback, kept until the Cloudflare migration is verified.
+      # - run: curl -fsS -X POST -d '{}' "${{ secrets.NETLIFY_BUILD_HOOK }}"
