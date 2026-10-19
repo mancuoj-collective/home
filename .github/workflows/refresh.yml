@@ -10,8 +10,6 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      # Cloudflare Workers deploy hook. Set the CF_DEPLOY_HOOK secret once the
-      # Worker is created in the Cloudflare dashboard.
       - name: Trigger build
         run: |
           hook="${{ secrets.CF_DEPLOY_HOOK }}"
@@ -20,5 +18,3 @@ jobs:
             exit 0
           fi
           curl -fsS -X POST -d '{}' "$hook"
-      # Netlify fallback, kept until the Cloudflare migration is verified.
-      # - run: curl -fsS -X POST -d '{}' "${{ secrets.NETLIFY_BUILD_HOOK }}"
